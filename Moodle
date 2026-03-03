@@ -33,7 +33,8 @@ RUN mkdir -p /var/www/html/moodledata && \
     chown -R www-data:www-data /var/www/html/moodledata && \
     chmod -R 0777 /var/www/html/moodledata
 
-
+# Configure Apache to serve Moodle
+RUN echo ServerName localhost >> /etc/apache2/apache2.conf
 
 # Ensure the default site is enabled
 RUN ln -sf /etc/apache2/sites-available/moodle_listeners.conf /etc/apache2/sites-enabled/
