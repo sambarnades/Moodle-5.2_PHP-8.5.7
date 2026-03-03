@@ -36,9 +36,6 @@ RUN mkdir -p /var/www/html/moodledata && \
 # Configure Apache to serve Moodle
 RUN echo ServerName localhost >> /etc/apache2/apache2.conf
 
-# Remove the old moodle_listeners.conf symlink if it exists
-RUN rm -f /etc/apache2/sites-enabled/moodle_listeners.conf
-
 CMD ["apache2ctl", "-D", "FOREGROUND"]
 
 EXPOSE 80
