@@ -7,7 +7,7 @@ apt-get clean
 # Install php extensions
 
 docker-php-ext-configure gd --with-freetype --with-jpeg
-docker-php-ext-install gd intl zip pgsql opcache
+docker-php-ext-install gd intl zip pgsql 
 # ------------------------ Already installed by default ------------------------
 # dom ctype json mbstring pcre simplexml spl xml openssl sodium tokenizer
 # ------------------------------------------------------------------------------
@@ -44,5 +44,7 @@ chown -R www-data:www-data /var/www/
 chmod -R 755 /var/www
 
 echo "Server setup completed successfully."
+
+php /var/www/html/moodle/index.php
 
 # cp config-dist.php config.php
