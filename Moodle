@@ -3,7 +3,7 @@ WORKDIR /var/www/html/
 
 # COPY ./moodle.conf /etc/apache2/conf-available/moodle.conf to set up the Apache configuration for Moodle. This file should contain the necessary directives to serve the Moodle application correctly.
 COPY ./moodle_listener.conf /etc/apache2/moodle_listener.conf
-COPY ./moodle_listeners.conf /etc/apache2/sites-available/moodle_listeners.conf
+COPY ./moodle_listeners.conf /etc/apache2/sites-available/000-default.conf
 
 # Installe les dépendances
 RUN apt-get update && \
@@ -36,9 +36,9 @@ RUN mkdir -p /var/www/html/moodledata && \
 # Configure Apache to serve Moodle
 RUN echo ServerName localhost >> /etc/apache2/apache2.conf
 
-# Ensure the default site is enabled
-RUN ln -sf /etc/apache2/sites-available/moodle_listeners.conf /etc/apache2/sites-enabled/
+# Remove the old moodle_listeners.conf symlink if it exists
+RUN rm -f /etc/apache2/sites-enabled/moodle_listeners.conf
 
 CMD ["apache2ctl", "-D", "FOREGROUND"]
 
-EXPOSE 8080
+EXPOSE 80
