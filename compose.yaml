@@ -29,8 +29,6 @@ services:
         POSTGRES_DB: ${POSTGRES_DB}
         ALLOW_EMPTY_PASSWORD: ${ALLOW_EMPTY_PASSWORD}
         PGDATA: ${PGDATA}
-      command:
-        
       healthcheck:
         test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} -h localhost -p 5432"]
         interval: 5s
@@ -52,4 +50,20 @@ services:
           condition: service_healthy
       volumes:
       - ./servers.json:/pgadmin4/servers.json
-      
+    redis:
+      image: redis:${REDIS_VERSION}
+      restart: always
+      ports:
+        - 6379:6379
+      volumes:
+        - ./redis:/data
+    redisinsight:
+      image: redis/redisinsight:${REDISINSIGHT_VERSION}
+      restart: always
+      environment:
+        RI_APP_PORT: 5540
+        RI_APP_HOST: 0.0.0.0
+      ports:
+        - 5540:5540
+      volumes:
+        - ./redisinsight:/db
