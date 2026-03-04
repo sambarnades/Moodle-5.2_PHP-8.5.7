@@ -1,11 +1,14 @@
+# Use the official PHP 8.5.3 Apache image as the base
 FROM php:8.5.3-apache
+
+# Set the working directory inside the container
 WORKDIR /var/www/html/
 
-# COPY ./moodle.conf /etc/apache2/conf-available/moodle.conf to set up the Apache configuration for Moodle. This file should contain the necessary directives to serve the Moodle application correctly.
+# Copy Apache configuration files for Moodle
 COPY ./moodle_listener.conf /etc/apache2/moodle_listener.conf
 COPY ./moodle_listeners.conf /etc/apache2/sites-available/000-default.conf
 
-# Installe les dépendances
+# Install system dependencies required for Moodle and PHP extensions
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
       git \
@@ -21,24 +24,26 @@ RUN apt-get update && \
     docker-php-ext-configure gd --with-freetype --with-jpeg && \
     docker-php-ext-install -j$(nproc) zip gd pgsql pdo_pgsql intl soap
 
-# Clone Moodle 5.1+ et configure la structure
+# Clone Moodle 5.1 stable branch and set up directory structure
 RUN mkdir /var/www/html/moodle && \
-    cd /var/www/html/moodle && \ 
+    cd /var/www/html/moodle && \
     git clone -b MOODLE_501_STABLE git://git.moodle.org/moodle.git . && \
     chown -R root /var/www/html/moodle/ && \
     chmod -R 0755 /var/www/html/moodle/
 
-# Create data directory
+# Create Moodle data directory with proper permissions
 RUN mkdir -p /var/www/html/moodledata && \
     chown -R www-data:www-data /var/www/html/moodledata && \
     chmod -R 0777 /var/www/html/moodledata
 
-# Configure Apache to serve Moodle
+# Configure Apache to use 'localhost' as ServerName
 RUN echo ServerName localhost >> /etc/apache2/apache2.conf
 
-# Remove the old moodle_listeners.conf symlink if it exists
+# Remove any existing symlink to moodle_listeners.conf
 RUN rm -f /etc/apache2/sites-enabled/moodle_listeners.conf
 
+# Command to run Apache in foreground mode
 CMD ["apache2ctl", "-D", "FOREGROUND"]
 
+# Expose port 80 for HTTP traffic
 EXPOSE 80

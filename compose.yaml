@@ -1,38 +1,55 @@
+networks:
+  moodle-network:
 services:
-  moodle:
-    build:
-      context: .
-      dockerfile: Moodle
-    ports:
-      - 8080:8080
-  postgres:
-    image: postgres:${POSTGRES_VERSION}
-    restart: always
-    # set shared memory limit when using docker compose
-    shm_size: 128mb
-    # or set shared memory limit when deploy via swarm stack
-    #volumes:
-    #  - type: tmpfs
-    #    target: /dev/shm
-    #    tmpfs:
-    #      size: 134217728 # 128*2^20 bytes = 128Mb*
-    ports:
-      - 5432:5432
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-      ALLOW_EMPTY_PASSWORD: ${ALLOW_EMPTY_PASSWORD}
-      PGDATA: /var/lib/postgresql/data/pgdata
-  pgadmin:
-    image: elestio/pgadmin:latest
-    restart: always
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${ADMIN_EMAIL}
-      PGADMIN_DEFAULT_PASSWORD: ${ADMIN_PASSWORD}
-      PGADMIN_LISTEN_PORT: 8081
-    ports:
-    - 8081:8081
-    volumes:
-    - ./servers.json:/pgadmin4/servers.json
-    
+    moodle:
+      build:
+        context: .
+        dockerfile: Moodle
+      ports:
+        - 8080:80
+      depends_on:
+        postgres:
+          condition: service_healthy
+    postgres:
+      image: postgres:${POSTGRES_VERSION}
+      restart: always
+      # set shared memory limit when using docker compose
+      shm_size: 128mb
+      # or set shared memory limit when deploy via swarm stack
+      #volumes:
+      #  - type: tmpfs
+      #    target: /dev/shm
+      #    tmpfs:
+      #      size: 134217728 # 128*2^20 bytes = 128Mb*
+      ports:
+        - 5432:5432
+      environment:
+        POSTGRES_USER: ${POSTGRES_USER}
+        POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+        POSTGRES_DB: ${POSTGRES_DB}
+        ALLOW_EMPTY_PASSWORD: ${ALLOW_EMPTY_PASSWORD}
+        PGDATA: ${PGDATA}
+      command:
+        
+      healthcheck:
+        test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} -h localhost -p 5432"]
+        interval: 5s
+        timeout: 5s
+        retries: 5
+      volumes:
+        - ./postgres:/var/lib/postgresql/18/docker
+    pgadmin:
+      image: elestio/pgadmin:latest
+      restart: always
+      environment:
+        PGADMIN_DEFAULT_EMAIL: ${ADMIN_EMAIL}
+        PGADMIN_DEFAULT_PASSWORD: ${ADMIN_PASSWORD}
+        PGADMIN_LISTEN_PORT: 8081
+      ports:
+      - 8081:8081
+      depends_on:
+        postgres:
+          condition: service_healthy
+      volumes:
+      - ./servers.json:/pgadmin4/servers.json
+      
