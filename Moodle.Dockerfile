@@ -2,11 +2,11 @@
 FROM php:8.5.3-apache
 
 # Set the working directory inside the container
-WORKDIR /var/www/html/
+WORKDIR /var/www/public_html/
 
 # Copy Apache configuration files for Moodle
-COPY ./moodle_listener.conf /etc/apache2/moodle_listener.conf
-COPY ./moodle_listeners.conf /etc/apache2/sites-available/000-default.conf
+# COPY ./moodle_listener.conf /etc/apache2/moodle_listener.conf
+# COPY ./moodle_listeners.conf /etc/apache2/sites-available/000-default.conf
 
 # Install system dependencies required for Moodle and PHP extensions
 RUN apt-get update && \
@@ -34,20 +34,20 @@ RUN echo "max_input_vars=5000" >> /usr/local/etc/php/conf.d/docker-php-moodle.in
     echo "opcache.revalidate_freq=60" >> /usr/local/etc/php/conf.d/docker-php-opcache.ini && \
     echo "opcache.validate_timestamps=1" >> /usr/local/etc/php/conf.d/docker-php-opcache.ini
 
-RUN cat /usr/local/etc/php/conf.d/docker-php-opcache.ini && \
-    cat /usr/local/etc/php/conf.d/docker-php-moodle.ini
-
 # Clone Moodle 5.1 stable branch and set up directory structure
-RUN mkdir /var/www/html/moodle && \
-    cd /var/www/html/moodle && \
+RUN mkdir /var/www/moodle && \
+    cd /var/www/moodle && \
     git clone -b MOODLE_501_STABLE git://git.moodle.org/moodle.git . && \
-    chown -R root /var/www/html/moodle/ && \
-    chmod -R 0755 /var/www/html/moodle/
+    chown -R root /var/www/moodle/ && \
+    chmod -R 0755 /var/www/moodle/ && \
+    cp -r /var/www/moodle/public /var/www/public_html/
 
 # Create Moodle data directory with proper permissions
-RUN mkdir -p /var/www/html/moodledata && \
-    chown -R www-data:www-data /var/www/html/moodledata && \
-    chmod -R 0777 /var/www/html/moodledata
+RUN mkdir -p /var/moodledata && \
+    chmod -R 0750 /var/moodledata
+
+# Create a symlink for the Moodle data directory
+RUN ln -s /var/www/moodle /var/www/public_html/moodle_public
 
 # Configure Apache to use 'localhost' as ServerName
 RUN echo ServerName localhost >> /etc/apache2/apache2.conf
