@@ -1,3 +1,5 @@
 .env
 postgres/
 servers.json
+redis/
+redisinsight/
