@@ -24,6 +24,7 @@ RUN apt-get update && \
     docker-php-ext-configure gd --with-freetype --with-jpeg && \
     docker-php-ext-install -j$(nproc) zip gd pgsql pdo_pgsql intl soap
 
+<<<<<<< HEAD:Moodle.Dockerfile
     # Set PHP settings for Moodle: max_input_vars and OPcache
 RUN echo "max_input_vars=5000" >> /usr/local/etc/php/conf.d/docker-php-moodle.ini && \
     echo "opcache.enable=1" >> /usr/local/etc/php/conf.d/docker-php-opcache.ini && \
@@ -34,6 +35,8 @@ RUN echo "max_input_vars=5000" >> /usr/local/etc/php/conf.d/docker-php-moodle.in
     echo "opcache.revalidate_freq=60" >> /usr/local/etc/php/conf.d/docker-php-opcache.ini && \
     echo "opcache.validate_timestamps=1" >> /usr/local/etc/php/conf.d/docker-php-opcache.ini
 
+=======
+>>>>>>> parent of 62b25d2 (- Need to find why the RUN echo in Moodle doesn't write opcache &  moodle .ini):Moodle
 # Clone Moodle 5.1 stable branch and set up directory structure
 RUN mkdir /var/www/moodle && \
     cd /var/www/moodle && \
