@@ -1,3 +1,5 @@
+networks:
+  moodle-network:
 services:
     moodle:
       build:
@@ -52,7 +54,7 @@ services:
       image: redis:${REDIS_VERSION}
       restart: always
       ports:
-        - 0.0.0.0:6379:6379
+        - 6379:6379
       volumes:
         - ./redis:/data
     redisinsight:
