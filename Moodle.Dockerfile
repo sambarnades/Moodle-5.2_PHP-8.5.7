@@ -5,8 +5,8 @@ FROM php:8.5.3-apache
 WORKDIR /var/www/html/
 
 # Copy Apache configuration files for Moodle
-# COPY ./moodle_listener.conf /etc/apache2/moodle_listener.conf
-# COPY ./moodle_listeners.conf /etc/apache2/sites-available/000-default.conf
+COPY ./moodle_listener.conf /etc/apache2/moodle_listener.conf
+COPY ./moodle_listeners.conf /etc/apache2/sites-available/000-default.conf
 
 # Install system dependencies required for Moodle and PHP extensions
 RUN apt-get update && \
@@ -37,13 +37,18 @@ RUN echo "max_input_vars=5000" >> /usr/local/etc/php/conf.d/docker-php-moodle.in
 # Clone Moodle 5.1 stable branch and set up directory structure
 RUN mkdir /var/www/html/moodle && \
     cd /var/www/html/moodle && \
-    git clone -b MOODLE_501_STABLE git://git.moodle.org/moodle.git . && \
-    chown -R root /var/www/html/moodle/ && \
-    chmod -R 0755 /var/www/html/moodle/ && \
+    chown -R root:www-data /var/www/html/moodle/ && \
+    chmod -R 0755 /var/www/html/moodle/
 
+    # PRODUCTION: Use the official Moodle release tarball for stability and security
+    # git clone -b MOODLE_501_STABLE git://git.moodle.org/moodle.git . && \
+
+    # DEVELOPMENT: COPY the local Moodle codebase for active development and testing
+COPY ./moodle/ /var/www/html/moodle/
+ 
 # Create Moodle data directory with proper permissions
-RUN mkdir -p /var/moodledata && \
-    chmod -R 0750 /var/moodledata
+RUN mkdir -p /data/moodledata && \
+    chmod -R 0750 /data/moodledata
 
 # Create a symlink for the Moodle data directory
 # RUN ln -s /var/www/html/moodle /var/www/html/moodle_public
@@ -55,7 +60,9 @@ RUN echo ServerName localhost >> /etc/apache2/apache2.conf
 RUN rm -f /etc/apache2/sites-enabled/moodle_listeners.conf
 
 # Command to run Apache in foreground mode
-CMD ["apache2ctl", "-D", "FOREGROUND"]
+ENTRYPOINT ["apache2ctl", "-D", "FOREGROUND"]
+
+RUN ["php", "/var/www/html/moodle/admin/cli/install_cli.php", "--non-interactive", "--agree-license", "--lang=${MOODLE_LANG}", "--chmod=2777" ,"--wwwroot=http://${MOODLE_ROOT}", "--dbtype=${MOODLE_DBTYPE}" , "--dbhost=${MOODLE_DBHOST}", "--dbname=${MOODLE_DBNAME}",  "--dbuser=${MOODLE_DBUSER}", "--dbpass=${MOODLE_DBPASS}", "--adminuser=${MOODLE_ADMIN_USER}", "--adminpass=${MOODLE_ADMIN_PASS}", "--fullname=${MOODLE_FULLNAME}", "--shortname=${MOODLE_SHORTNAME}", "--adminemail=${MOODLE_ADMIN_EMAIL}", "--supportemail=${MOODLE_SUPPORT_EMAIL}"]
 
 # Expose port 80 for HTTP traffic
 EXPOSE 80

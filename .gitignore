@@ -3,3 +3,4 @@ postgres/
 servers.json
 redis/
 redisinsight/
+moodle/

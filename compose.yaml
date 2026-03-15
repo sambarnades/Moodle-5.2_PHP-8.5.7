@@ -6,7 +6,21 @@ services:
         context: .
         dockerfile: Moodle.Dockerfile
       ports:
-        - 127.0.0.1:8080:80
+        - 127.0.0.1:80:80
+      environment:
+        MOODLE_LANG: ${MOODLE_LANG}
+        MOODLE_ROOT: ${MOODLE_ROOT}
+        MOODLE_DBTYPE: ${MOODLE_DBTYPE}
+        MOODLE_DBHOST: ${MOODLE_DBHOST}
+        MOODLE_DBNAME: ${MOODLE_DBNAME}
+        MOODLE_DBUSER: ${MOODLE_DBUSER}
+        MOODLE_DBPASS: ${MOODLE_DBPASS}
+        MOODLE_ADMIN_USER: ${MOODLE_ADMIN_USER}
+        MOODLE_ADMIN_PASS: ${MOODLE_ADMIN_PASS}
+        MOODLE_FULLNAME: ${MOODLE_FULLNAME}
+        MOODLE_SHORTNAME: ${MOODLE_SHORTNAME}
+        MOODLE_ADMIN_EMAIL: ${MOODLE_ADMIN_EMAIL}
+        MOODLE_SUPPORT_EMAIL: ${MOODLE_SUPPORT_EMAIL}
       depends_on:
         postgres:
           condition: service_healthy
