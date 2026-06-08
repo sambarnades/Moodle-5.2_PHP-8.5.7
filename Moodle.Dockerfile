@@ -59,10 +59,11 @@ RUN echo ServerName localhost >> /etc/apache2/apache2.conf
 # Remove any existing symlink to moodle_listeners.conf
 RUN rm -f /etc/apache2/sites-enabled/moodle_listeners.conf
 
-# Command to run Apache in foreground mode
-ENTRYPOINT ["apache2ctl", "-D", "FOREGROUND"]
+# Set the entrypoint to a setup script that can perform any necessary initialization after starting Apache
+#ENTRYPOINT ["apache2ctl", "-D", "FOREGROUND"]
 
-RUN ["php", "/var/www/html/moodle/admin/cli/install_cli.php", "--non-interactive", "--agree-license", "--lang=${MOODLE_LANG}", "--chmod=2777" ,"--wwwroot=http://${MOODLE_ROOT}", "--dbtype=${MOODLE_DBTYPE}" , "--dbhost=${MOODLE_DBHOST}", "--dbname=${MOODLE_DBNAME}",  "--dbuser=${MOODLE_DBUSER}", "--dbpass=${MOODLE_DBPASS}", "--adminuser=${MOODLE_ADMIN_USER}", "--adminpass=${MOODLE_ADMIN_PASS}", "--fullname=${MOODLE_FULLNAME}", "--shortname=${MOODLE_SHORTNAME}", "--adminemail=${MOODLE_ADMIN_EMAIL}", "--supportemail=${MOODLE_SUPPORT_EMAIL}"]
+# Command to run Apache in foreground mode
+# CMD ["apache2ctl", "-D", "FOREGROUND"]
 
 # Expose port 80 for HTTP traffic
 EXPOSE 80

@@ -68,7 +68,7 @@ services:
       image: redis:${REDIS_VERSION}
       restart: always
       ports:
-        - 6379:6379
+        - 127.0.0.1:6379:6379
       volumes:
         - ./redis:/data
     redisinsight:
@@ -78,6 +78,6 @@ services:
         RI_APP_PORT: 5540
         RI_APP_HOST: 0.0.0.0
       ports:
-        - 5540:5540
+        - 127.0.0.1:5540:5540
       volumes:
         - ./redisinsight:/db
