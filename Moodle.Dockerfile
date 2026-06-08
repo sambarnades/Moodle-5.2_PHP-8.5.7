@@ -8,6 +8,10 @@ WORKDIR /var/www/html/
 COPY ./moodle_listener.conf /etc/apache2/moodle_listener.conf
 COPY ./moodle_listeners.conf /etc/apache2/sites-available/000-default.conf
 
+# Copy the installation script to the container
+COPY ./install.sh /var/www/html/
+RUN chmod +x /var/www/html/install.sh
+
 # Install system dependencies required for Moodle and PHP extensions
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -40,10 +44,10 @@ RUN mkdir /var/www/html/moodle && \
     chown -R root:www-data /var/www/html/moodle/ && \
     chmod -R 0755 /var/www/html/moodle/
 
-    # PRODUCTION: Use the official Moodle release tarball for stability and security
-    # git clone -b MOODLE_501_STABLE git://git.moodle.org/moodle.git . && \
+# PRODUCTION: Use the official Moodle release tarball for stability and security
+# git clone -b MOODLE_501_STABLE git://git.moodle.org/moodle.git . && \
 
-    # DEVELOPMENT: COPY the local Moodle codebase for active development and testing
+# DEVELOPMENT: COPY the local Moodle codebase for active development and testing
 COPY ./moodle/ /var/www/html/moodle/
  
 # Create Moodle data directory with proper permissions
@@ -59,11 +63,7 @@ RUN echo ServerName localhost >> /etc/apache2/apache2.conf
 # Remove any existing symlink to moodle_listeners.conf
 RUN rm -f /etc/apache2/sites-enabled/moodle_listeners.conf
 
-# Set the entrypoint to a setup script that can perform any necessary initialization after starting Apache
-#ENTRYPOINT ["apache2ctl", "-D", "FOREGROUND"]
-
-# Command to run Apache in foreground mode
-# CMD ["apache2ctl", "-D", "FOREGROUND"]
+CMD ["bash", "-c", "/var/www/html/install.sh && exec apache2-foreground"]
 
 # Expose port 80 for HTTP traffic
 EXPOSE 80
