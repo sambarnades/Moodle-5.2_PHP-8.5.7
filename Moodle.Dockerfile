@@ -7,10 +7,7 @@ WORKDIR /var/www/html/
 # Copy Apache configuration files for Moodle
 COPY ./moodle_listener.conf /etc/apache2/moodle_listener.conf
 COPY ./moodle_listeners.conf /etc/apache2/sites-available/000-default.conf
-
-# Copy the installation script to the container
-COPY ./install.sh /var/www/html/
-RUN chmod +x /var/www/html/install.sh
+COPY ./install.sh /install/install.sh
 
 # Install system dependencies required for Moodle and PHP extensions
 RUN apt-get update && \
@@ -39,20 +36,24 @@ RUN echo "max_input_vars=5000" >> /usr/local/etc/php/conf.d/docker-php-moodle.in
     echo "opcache.validate_timestamps=1" >> /usr/local/etc/php/conf.d/docker-php-opcache.ini
 
 # Clone Moodle 5.1 stable branch and set up directory structure
-RUN mkdir /var/www/html/moodle && \
-    cd /var/www/html/moodle && \
-    chown -R root:www-data /var/www/html/moodle/ && \
-    chmod -R 0755 /var/www/html/moodle/
+RUN mkdir /var/www/html/moodle
 
 # PRODUCTION: Use the official Moodle release tarball for stability and security
 # git clone -b MOODLE_501_STABLE git://git.moodle.org/moodle.git . && \
 
 # DEVELOPMENT: COPY the local Moodle codebase for active development and testing
 COPY ./moodle/ /var/www/html/moodle/
- 
+
+# Set permissions for the Moodle directory
+# root owns the directory, www-data/Apache group has write access, good for maintenance
+RUN chown -R root:www-data /var/www/html/moodle/ && \
+    chmod 0770 /var/www/html/moodle/ && \
+    
 # Create Moodle data directory with proper permissions
+# root owns the directory, www-data/Apache group has write access, good for maintenance
 RUN mkdir -p /data/moodledata && \
-    chmod -R 0750 /data/moodledata
+    chown -R root:www-data /data/moodledata && \
+    chmod -R 0770 /data/moodledata
 
 # Create a symlink for the Moodle data directory
 # RUN ln -s /var/www/html/moodle /var/www/html/moodle_public
@@ -63,7 +64,7 @@ RUN echo ServerName localhost >> /etc/apache2/apache2.conf
 # Remove any existing symlink to moodle_listeners.conf
 RUN rm -f /etc/apache2/sites-enabled/moodle_listeners.conf
 
-CMD ["bash", "-c", "/var/www/html/install.sh && exec apache2-foreground"]
+CMD ["/usr/local/bin/apache2-foreground"]
 
 # Expose port 80 for HTTP traffic
 EXPOSE 80
