@@ -7,7 +7,6 @@ WORKDIR /var/www/html/
 # Copy Apache configuration files for Moodle
 COPY ./moodle_listener.conf /etc/apache2/moodle_listener.conf
 COPY ./moodle_listeners.conf /etc/apache2/sites-available/000-default.conf
-COPY ./install.sh /install/install.sh
 
 # Install system dependencies required for Moodle and PHP extensions
 RUN apt-get update && \
@@ -21,7 +20,9 @@ RUN apt-get update && \
       libpq-dev \
       libicu-dev \
       libxml2-dev \
-      libonig-dev && \
+      libonig-dev \
+      nano \
+      cron && \
     docker-php-ext-configure gd --with-freetype --with-jpeg && \
     docker-php-ext-install -j$(nproc) zip gd pgsql pdo_pgsql intl soap
 
@@ -33,7 +34,12 @@ RUN echo "max_input_vars=5000" >> /usr/local/etc/php/conf.d/docker-php-moodle.in
     echo "opcache.interned_strings_buffer=8" >> /usr/local/etc/php/conf.d/docker-php-opcache.ini && \
     echo "opcache.max_accelerated_files=10000" >> /usr/local/etc/php/conf.d/docker-php-opcache.ini && \
     echo "opcache.revalidate_freq=60" >> /usr/local/etc/php/conf.d/docker-php-opcache.ini && \
-    echo "opcache.validate_timestamps=1" >> /usr/local/etc/php/conf.d/docker-php-opcache.ini
+    echo "opcache.validate_timestamps=1" >> /usr/local/etc/php/conf.d/docker-php-opcache.ini && \
+
+    # Change post_max_size; upload_max_filesize ; max_execution_time
+    echo "post_max_size=100M" >> /usr/local/etc/php/conf.d/docker-php-filsize.ini && \
+    echo "upload_max_filesize=100M" >> /usr/local/etc/php/conf.d/docker-php-filsize.ini && \
+    echo "max_execution_time=300" >> /usr/local/etc/php/conf.d/docker-php-filsize.ini
 
 # Clone Moodle 5.1 stable branch and set up directory structure
 RUN mkdir /var/www/html/moodle
@@ -47,7 +53,7 @@ COPY ./moodle/ /var/www/html/moodle/
 # Set permissions for the Moodle directory
 # root owns the directory, www-data/Apache group has write access, good for maintenance
 RUN chown -R root:www-data /var/www/html/moodle/ && \
-    chmod 0770 /var/www/html/moodle/ && \
+    chmod 0770 /var/www/html/moodle/
     
 # Create Moodle data directory with proper permissions
 # root owns the directory, www-data/Apache group has write access, good for maintenance

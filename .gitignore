@@ -4,3 +4,4 @@ servers.json
 redis/
 redisinsight/
 moodle/
+install.sh
