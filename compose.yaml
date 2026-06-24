@@ -24,6 +24,8 @@ services:
       depends_on:
         postgres:
           condition: service_healthy
+      networks:
+        - moodle-network
     postgres:
       image: postgres:${POSTGRES_VERSION}
       restart: always
@@ -50,6 +52,8 @@ services:
         retries: 5
       volumes:
         - ./postgres:/var/lib/postgresql/18/docker
+      networks:
+        - moodle-network
     pgadmin:
       image: elestio/pgadmin:latest
       restart: always
@@ -64,6 +68,8 @@ services:
           condition: service_healthy
       volumes:
       - ./servers.json:/pgadmin4/servers.json
+      networks:
+        - moodle-network
     redis:
       image: redis:${REDIS_VERSION}
       restart: always
@@ -81,3 +87,5 @@ services:
         - 127.0.0.1:5540:5540
       volumes:
         - ./redisinsight:/db
+      networks:
+        - moodle-network

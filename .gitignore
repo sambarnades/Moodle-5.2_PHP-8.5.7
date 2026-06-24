@@ -5,3 +5,5 @@ redis/
 redisinsight/
 moodle/
 install.sh
+entrypoint.sh
+moodledata/
