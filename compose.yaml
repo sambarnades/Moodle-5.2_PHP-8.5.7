@@ -31,9 +31,6 @@ services:
       depends_on:
         postgres:
           condition: service_healthy
-      networks:
-        - moodle-network
-      profiles: ["web", "dev", "prod"]
     postgres:
       image: postgres:${POSTGRES_VERSION}
       restart: always
@@ -59,10 +56,7 @@ services:
         timeout: 5s
         retries: 5
       volumes:
-        - ./moodle_postgres:/var/lib/postgresql/18/docker
-      networks:
-        - moodle-network
-      profiles: ["db", "dev", "full"]
+        - ./postgres:/var/lib/postgresql/18/docker
     pgadmin:
       image: elestio/pgadmin:latest
       restart: always
@@ -76,10 +70,7 @@ services:
         postgres:
           condition: service_healthy
       volumes:
-        - ./servers.json:/pgadmin4/servers.json
-      networks:
-        - moodle-network
-      profiles: ["db", "dev", "full"]
+      - ./servers.json:/pgadmin4/servers.json
     redis:
       image: redis:${REDIS_VERSION}
       restart: unless-stopped
@@ -102,11 +93,4 @@ services:
       ports:
         - "${REDISINSIGHT_HOST:-127.0.0.1}:${REDISINSIGHT_PORT:-5540}:5540"
       volumes:
-        - ./moodle_redisinsight:/db
-      networks:
-        - moodle-network
-      profiles: ["cache", "dev", "full"]
-volumes:
-  moodle_postgres:
-  moodle_redis:
-  moodle_redisinsight:
+        - ./redisinsight:/db

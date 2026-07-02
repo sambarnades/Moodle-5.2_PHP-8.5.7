@@ -65,10 +65,6 @@ RUN echo ServerName localhost >> /etc/apache2/apache2.conf
 # Remove any existing symlink to moodle_listeners.conf
 RUN rm -f /etc/apache2/sites-enabled/moodle_listeners.conf
 
-# Copy the custom Apache configuration
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-ENTRYPOINT ["/entrypoint.sh"]
 CMD ["/usr/local/bin/apache2-foreground"]
 
 # Expose port 80 for HTTP traffic
