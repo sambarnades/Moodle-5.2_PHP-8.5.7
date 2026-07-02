@@ -1,9 +1,18 @@
+# Environment
 .env
+
+# Runtime data
 postgres/
 servers.json
 redis/
 redisinsight/
-moodle/
-install.sh
-entrypoint.sh
 moodledata/
+
+# Development files (downloaded in Dockerfile for production)
+moodle/
+
+# IDE/OS files
+.DS_Store
+.idea/
+*.swp
+*.swo

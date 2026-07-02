@@ -6,7 +6,7 @@ services:
         context: .
         dockerfile: Moodle.Dockerfile
       ports:
-        - 127.0.0.1:80:80
+        - "${MOODLE_HOST:-0.0.0.0}:${MOODLE_PORT:-80}:80"
       environment:
         MOODLE_LANG: ${MOODLE_LANG}
         MOODLE_ROOT: ${MOODLE_ROOT}
@@ -21,11 +21,19 @@ services:
         MOODLE_SHORTNAME: ${MOODLE_SHORTNAME}
         MOODLE_ADMIN_EMAIL: ${MOODLE_ADMIN_EMAIL}
         MOODLE_SUPPORT_EMAIL: ${MOODLE_SUPPORT_EMAIL}
+      healthcheck:
+        test: ["CMD", "curl", "-f", "http://localhost:443/" ]
+        interval: 30s
+        timeout: 10s
+        retries: 3
+        start_period: 60s
+      restart: unless-stopped
       depends_on:
         postgres:
           condition: service_healthy
       networks:
         - moodle-network
+      profiles: ["web", "dev", "prod"]
     postgres:
       image: postgres:${POSTGRES_VERSION}
       restart: always
@@ -38,7 +46,7 @@ services:
       #    tmpfs:
       #      size: 134217728 # 128*2^20 bytes = 128Mb*
       ports:
-        - 5432:5432
+        - "${POSTGRES_HOST:-127.0.0.1}:${POSTGRES_PORT:-5432}:5432"
       environment:
         POSTGRES_USER: ${POSTGRES_USER}
         POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -51,32 +59,40 @@ services:
         timeout: 5s
         retries: 5
       volumes:
-        - ./postgres:/var/lib/postgresql/18/docker
+        - ./moodle_postgres:/var/lib/postgresql/18/docker
       networks:
         - moodle-network
+      profiles: ["db", "dev", "full"]
     pgadmin:
       image: elestio/pgadmin:latest
       restart: always
       environment:
         PGADMIN_DEFAULT_EMAIL: ${ADMIN_EMAIL}
         PGADMIN_DEFAULT_PASSWORD: ${ADMIN_PASSWORD}
-        PGADMIN_LISTEN_PORT: 8081
+        PGADMIN_LISTEN_PORT: 8443
       ports:
-      - 8081:8081
+        - "${PGADMIN_HOST:-127.0.0.1}:${PGADMIN_PORT:-8081}:80"
       depends_on:
         postgres:
           condition: service_healthy
       volumes:
-      - ./servers.json:/pgadmin4/servers.json
+        - ./servers.json:/pgadmin4/servers.json
       networks:
         - moodle-network
+      profiles: ["db", "dev", "full"]
     redis:
       image: redis:${REDIS_VERSION}
-      restart: always
+      restart: unless-stopped
+      healthcheck:
+        test: ["CMD", "redis-cli", "ping"]
+        interval: 10s
+        timeout: 5s
+        retries: 3
       ports:
-        - 127.0.0.1:6379:6379
+        - "${REDIS_HOST:-127.0.0.1}:${REDIS_PORT:-6379}:6379"
       volumes:
-        - ./redis:/data
+        - ./moodle_redis:/data
+      profiles: ["cache", "dev", "full"]
     redisinsight:
       image: redis/redisinsight:${REDISINSIGHT_VERSION}
       restart: always
@@ -84,8 +100,13 @@ services:
         RI_APP_PORT: 5540
         RI_APP_HOST: 0.0.0.0
       ports:
-        - 127.0.0.1:5540:5540
+        - "${REDISINSIGHT_HOST:-127.0.0.1}:${REDISINSIGHT_PORT:-5540}:5540"
       volumes:
-        - ./redisinsight:/db
+        - ./moodle_redisinsight:/db
       networks:
         - moodle-network
+      profiles: ["cache", "dev", "full"]
+volumes:
+  moodle_postgres:
+  moodle_redis:
+  moodle_redisinsight:

@@ -1,5 +1,5 @@
 # Use the official PHP 8.5.3 Apache image as the base
-FROM php:8.5.3-apache
+FROM php:8.5.7-apache
 
 # Set the working directory inside the container
 WORKDIR /var/www/html/
@@ -41,20 +41,15 @@ RUN echo "max_input_vars=5000" >> /usr/local/etc/php/conf.d/docker-php-moodle.in
     echo "upload_max_filesize=100M" >> /usr/local/etc/php/conf.d/docker-php-filsize.ini && \
     echo "max_execution_time=300" >> /usr/local/etc/php/conf.d/docker-php-filsize.ini
 
-# Clone Moodle 5.1 stable branch and set up directory structure
-RUN mkdir /var/www/html/moodle
-
 # PRODUCTION: Use the official Moodle release tarball for stability and security
-# git clone -b MOODLE_501_STABLE git://git.moodle.org/moodle.git . && \
-
-# DEVELOPMENT: COPY the local Moodle codebase for active development and testing
-COPY ./moodle/ /var/www/html/moodle/
+# Clone Moodle 5.2 stable directly into the moodle directory
+RUN mkdir -p /var/www/html/moodle && \
+    git clone -b MOODLE_502_STABLE git://git.moodle.org/moodle.git /var/www/html/moodle
 
 # Set permissions for the Moodle directory
-# root owns the directory, www-data/Apache group has write access, good for maintenance
 RUN chown -R root:www-data /var/www/html/moodle/ && \
     chmod 0770 /var/www/html/moodle/
-    
+
 # Create Moodle data directory with proper permissions
 # root owns the directory, www-data/Apache group has write access, good for maintenance
 RUN mkdir -p /data/moodledata && \

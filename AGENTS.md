@@ -52,6 +52,11 @@
 - Configuration: `/moodle/config.php`
 - Docker files: `/compose/`
 - This project uses: PostgreSQL (configured in compose.yaml)
+- **New files in `/compose/`**:
+  - `Makefile` - Common Docker commands
+  - `.env.example` - Environment template
+  - `.dockerignore` - Docker build exclusions
+  - `.gitignore` - Git exclusions (includes moodle/)
 
 ## 🐳 Docker Commands
 ### Official Moodle Docker (Recommended)
@@ -64,20 +69,47 @@ bin/moodle-docker-compose up -d
 ```
 
 ### Project-Specific Commands
-- **Start**: `docker compose -f compose/compose.yaml up -d`
-- **Stop**: `docker compose -f compose/compose.yaml down`
-- **Rebuild**: `docker compose -f compose/compose.yaml up -d --build`
-- **Logs**: `docker compose -f compose/compose.yaml logs -f`
-- **Exec**: `docker compose -f compose/compose.yaml exec moodle ...`
+- **Start**: `make up` or `docker compose up -d`
+- **Stop**: `make down` or `docker compose down`
+- **Stop + remove volumes**: `make clean` or `docker compose down -v`
+- **Rebuild**: `make rebuild` or `docker compose up -d --build`
+- **Logs**: `make logs` or `docker compose logs -f`
+- **Logs (Moodle only)**: `make logs-moodle`
+- **Logs (PostgreSQL only)**: `make logs-postgres`
+- **Shell access**: `make shell`
+- **Database dump**: `make db-dump`
+- **Database restore**: `make db-restore FILE=backup.sql`
+- **Cron manual**: `make cron-run`
+- **List all commands**: `make help`
 
 ## 🔧 Installation
 - **Official**: Use [moodle-docker](https://github.com/moodlehq/moodle-docker) for standard setup
-- **Project-specific**: Use `/compose/install.sh` for this project's automated setup (PostgreSQL + Redis)
+- **Project-specific**: Uses `/compose/entrypoint.sh` for automated setup (PostgreSQL + Redis)
 - `config.php` is generated during installation
 - Data directory: `/moodledata/` (mounted volume)
+- **Note**: `moodle/` folder not tracked in git (see `.gitignore`)
 
 ## 💡 Project Notes
 - This project uses **PostgreSQL 18** (configured in compose.yaml)
 - Redis is included for caching/session storage
 - pgAdmin available at port 8081 for database management
 - RedisInsight available at port 5540 for Redis management
+
+---
+
+## 🚀 Project Improvements
+
+### Healthchecks
+- **Moodle**: HTTP check on port 80 (30s interval, 10s timeout, 3 retries, 60s start period)
+- **PostgreSQL**: `pg_isready` check (5s interval, 5s timeout, 5 retries)
+- **Redis**: `redis-cli ping` check (10s interval, 5s timeout, 3 retries)
+
+### Security
+- `.env` in `.gitignore` (never commit credentials)
+- `moodle/` in `.gitignore` (downloaded in Dockerfile for production)
+- Sensitive defaults removed from README.md
+
+### Development Tools
+- **Makefile**: Standardized commands for consistency
+- **backup/restore**: Automated via `make db-dump` / `make db-restore`
+- **.env.example**: Template for new contributors
