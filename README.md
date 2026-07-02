@@ -100,7 +100,7 @@ See `.env.example` for the complete template with all available variables.
 
 ### Apache Configuration
 
-- **`moodle_listener.conf`**: Handles Moodle sites served from sub-folders (e.g., `/var/www/html/moodle/public`)
+- **`moodle_listener.conf`**: Handles Moodle sites served from sub-folders (e.g., `/var/www/html/moodle/public`) and change host from `127.0.0.1` to your domain
 - **`moodle_listeners.conf`**: Includes the listener config in the virtual host
 - **DocumentRoot**: `/var/www/html/moodle/public` (Moodle web root)
 - **Redis Configuration**: `redis.conf` for custom Redis settings
@@ -111,7 +111,6 @@ See `.env.example` for the complete template with all available variables.
 
 ```
 compose/
-├── .env                    # Environment variables (NOT in git)
 ├── .env.example            # Template for environment variables
 ├── .gitignore              # Git ignore rules
 ├── .dockerignore           # Docker build ignore rules
@@ -123,15 +122,9 @@ compose/
 ├── moodle_listener.conf    # Apache rewrite rules for Moodle
 ├── moodle_listeners.conf   # Apache virtual host include
 ├── redis.conf              # Redis server configuration
-├── moodle/                 # Moodle source code (NOT in git)
-│   └── public/             # Moodle web root
-├── moodle_postgres/        # PostgreSQL data (volume mount, NOT in git)
-├── moodle_redisinsight/    # RedisInsight data (volume mount, NOT in git)
-└── servers.json            # pgAdmin servers config (NOT in git)
 ```
 
 > 📝 **Note**: 
-> - `moodle/` directory is not tracked in git (see `.gitignore`)
 > - Volume directories (`moodle_postgres/`, `moodle_redisinsight/`) are created at runtime
 > - Moodle web root is `/var/www/html/moodle/public` inside the container
 
@@ -214,7 +207,7 @@ make db-restore FILE=x  # Restore database from backup file
 ### 🔒 Security Best Practices
 - **Never commit `.env`** to version control (it's in `.gitignore`)
 - **Change all default passwords** in `.env` before production use
-- Use HTTPS in production (add a reverse proxy like Nginx, Traefik, or Caddy)
+- Use HTTPS in production (add a reverse proxy like Traefik, or Caddy)
 - Consider using Docker secrets for sensitive data in production
 - The Moodle admin password (`MOODLE_ADMIN_PASS`) should be strong and unique
 
