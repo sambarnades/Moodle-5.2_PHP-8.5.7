@@ -1,3 +1,4 @@
+name: Moodle-Postgres-Redis Network
 networks:
   moodle-network:
 services:
@@ -6,7 +7,8 @@ services:
         context: .
         dockerfile: Moodle.Dockerfile
       ports:
-        - 127.0.0.1:80:80
+        - ${WEB_ADDRESS}:80:80
+        - ${WEB_ADDRESS}:443:443
       environment:
         MOODLE_LANG: ${MOODLE_LANG}
         MOODLE_ROOT: ${MOODLE_ROOT}
@@ -22,7 +24,7 @@ services:
         MOODLE_ADMIN_EMAIL: ${MOODLE_ADMIN_EMAIL}
         MOODLE_SUPPORT_EMAIL: ${MOODLE_SUPPORT_EMAIL}
       healthcheck:
-        test: ["CMD", "curl", "-f", "http://127.0.0.1:80/" ]
+        test: ["CMD", "curl", "-f", "http://${WEB_ADDRESS}:80/" ]
         interval: 30s
         timeout: 10s
         retries: 3
@@ -42,8 +44,6 @@ services:
       #    target: /dev/shm
       #    tmpfs:
       #      size: 134217728 # 128*2^20 bytes = 128Mb*
-      ports:
-        - 127.0.0.1:5432:5432
       environment:
         POSTGRES_USER: ${POSTGRES_USER}
         POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -56,7 +56,7 @@ services:
         timeout: 5s
         retries: 5
       volumes:
-        - ./postgres:/var/lib/postgresql/18/docker
+        - ./moodle_postgres:/var/lib/postgresql/18/docker
     pgadmin:
       image: elestio/pgadmin:latest
       restart: always
@@ -65,7 +65,7 @@ services:
         PGADMIN_DEFAULT_PASSWORD: ${ADMIN_PASSWORD}
         PGADMIN_LISTEN_PORT: 8443
       ports:
-        - 127.0.0.1:8443:8443
+        - ${WEB_ADDRESS}:8443:8443
       depends_on:
         postgres:
           condition: service_healthy
@@ -74,23 +74,32 @@ services:
     redis:
       image: redis:${REDIS_VERSION}
       restart: unless-stopped
+      environment:
+        REDIS_HOST: ${REDIS_HOST}
+        REDIS_PORT: ${REDIS_PORT}
+        REDIS_USERNAME: ${REDIS_USERNAME}
+        REDIS_SS: ${REDIS_SS}
+        REDIS_CA_PATH: ${REDIS_CA_PATH}
+        REDIS_SSL_KEYFILE: ${REDIS_SSL_KEYFILE}
+        REDIS_SSL_CERTFILE: ${REDIS_SSL_CERTFILE}
+        REDIS_CERT_REQS: ${REDIS_CERT_REQS}
+        REDIS_CA_CERTS: ${REDIS_CA_CERTS}
+        REDIS_CLUSTER_MODE: ${REDIS_CLUSTER_MODE}
+        REDIS_PWD: ${REDIS_PWD}
       healthcheck:
         test: ["CMD", "redis-cli", "ping"]
         interval: 10s
         timeout: 5s
         retries: 3
-      ports:
-        - 127.0.0.1:6379:6379
       volumes:
         - ./moodle_redis:/data
-      profiles: ["cache", "dev", "full"]
     redisinsight:
       image: redis/redisinsight:${REDISINSIGHT_VERSION}
       restart: always
       environment:
         RI_APP_PORT: 5540
-        RI_APP_HOST: 127.0.0.1
+        RI_APP_HOST: ${WEB_ADDRESS}
       ports:
-        - 127.0.0.1:5540:5540
+        - ${WEB_ADDRESS}:5540:5540
       volumes:
-        - ./redisinsight:/db
+        - ./moodle_redisinsight:/db

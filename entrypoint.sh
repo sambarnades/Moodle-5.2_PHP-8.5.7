@@ -12,8 +12,8 @@ if [ ! -f "$INSTALL_MARKER" ]; then
 
   php /var/www/html/moodle/admin/cli/install.php \
     --wwwroot="http://${MOODLE_ROOT:-127.0.0.1}" \
-    --lang="${MOODLE_LANG:-en}" \
-    --dataroot=/data/moodledata \
+    --lang="${MOODLE_LANG:-fr}" \
+    --dataroot="/data/moodledata" \
     --dbtype="${MOODLE_DBTYPE:-pgsql}" \
     --dbhost="${MOODLE_DBHOST:-postgres}" \
     --dbname="${MOODLE_DBNAME:-moodle}" \
