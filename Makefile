@@ -36,26 +36,7 @@ help:
 
 # Start services (default: dev profile)
 up:
-	docker compose --profile dev up -d
-
-# Start services with specific profiles
-up-dev:
-	docker compose --profile dev up -d
-
-up-prod:
-	docker compose --profile prod up -d
-
-up-full:
-	docker compose --profile full up -d
-
-up-web:
-	docker compose --profile web up -d
-
-up-db:
-	docker compose --profile db up -d
-
-up-cache:
-	docker compose --profile cache up -d
+	docker compose up -d
 
 # Stop services
 down:
@@ -63,13 +44,7 @@ down:
 
 # Rebuild and restart
 rebuild:
-	docker compose --profile dev up -d --build
-
-rebuild-dev:
-	docker compose --profile dev up -d --build
-
-rebuild-prod:
-	docker compose --profile prod up -d --build
+	docker compose up -d --build
 
 # Restart services
 restart:
