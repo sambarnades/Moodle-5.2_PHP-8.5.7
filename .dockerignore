@@ -1,2 +1,37 @@
+# Git
 .git/
+.gitignore
+
+# Documentation
+*.md
+AGENTS.md
+
+# Environment
+.env
+.env.example
+
+# IDE/Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Logs
 *.log
+
+# Docker
+Dockerfile
+docker-compose*
+.dockerignore
+
+# Makefile
+Makefile
+
+# Backup files
+*.sql
+*.tar.gz
+backup/
+
+# OS
+Thumbs.db

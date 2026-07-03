@@ -1,38 +1,107 @@
+name: Moodle-Postgres-Redis Network
+networks:
+  moodle-network:
 services:
-  moodle:
-    build:
-      context: .
-      dockerfile: Moodle
-    ports:
-      - 8080:8080
-  postgres:
-    image: postgres:${POSTGRES_VERSION}
-    restart: always
-    # set shared memory limit when using docker compose
-    shm_size: 128mb
-    # or set shared memory limit when deploy via swarm stack
-    #volumes:
-    #  - type: tmpfs
-    #    target: /dev/shm
-    #    tmpfs:
-    #      size: 134217728 # 128*2^20 bytes = 128Mb*
-    ports:
-      - 5432:5432
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-      ALLOW_EMPTY_PASSWORD: ${ALLOW_EMPTY_PASSWORD}
-      PGDATA: /var/lib/postgresql/data/pgdata
-  pgadmin:
-    image: elestio/pgadmin:latest
-    restart: always
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${ADMIN_EMAIL}
-      PGADMIN_DEFAULT_PASSWORD: ${ADMIN_PASSWORD}
-      PGADMIN_LISTEN_PORT: 8081
-    ports:
-    - 8081:8081
-    volumes:
-    - ./servers.json:/pgadmin4/servers.json
-    
+    moodle:
+      build:
+        context: .
+        dockerfile: Moodle.Dockerfile
+      ports:
+        - ${WEB_ADDRESS}:80:80
+        - ${WEB_ADDRESS}:443:443
+      environment:
+        MOODLE_LANG: ${MOODLE_LANG}
+        MOODLE_ROOT: ${MOODLE_ROOT}
+        MOODLE_DBTYPE: ${MOODLE_DBTYPE}
+        MOODLE_DBHOST: ${MOODLE_DBHOST}
+        MOODLE_DBNAME: ${MOODLE_DBNAME}
+        MOODLE_DBUSER: ${MOODLE_DBUSER}
+        MOODLE_DBPASS: ${MOODLE_DBPASS}
+        MOODLE_ADMIN_USER: ${MOODLE_ADMIN_USER}
+        MOODLE_ADMIN_PASS: ${MOODLE_ADMIN_PASS}
+        MOODLE_FULLNAME: ${MOODLE_FULLNAME}
+        MOODLE_SHORTNAME: ${MOODLE_SHORTNAME}
+        MOODLE_ADMIN_EMAIL: ${MOODLE_ADMIN_EMAIL}
+        MOODLE_SUPPORT_EMAIL: ${MOODLE_SUPPORT_EMAIL}
+      healthcheck:
+        test: ["CMD", "curl", "-f", "http://${WEB_ADDRESS}:80/" ]
+        interval: 30s
+        timeout: 10s
+        retries: 3
+        start_period: 60s
+      restart: unless-stopped
+      depends_on:
+        postgres:
+          condition: service_healthy
+      volumes:
+       - ./moodle_data:/data/moodledata
+    postgres:
+      image: postgres:${POSTGRES_VERSION}
+      restart: always
+      # set shared memory limit when using docker compose
+      shm_size: 128mb
+      # or set shared memory limit when deploy via swarm stack
+      #volumes:
+      #  - type: tmpfs
+      #    target: /dev/shm
+      #    tmpfs:
+      #      size: 134217728 # 128*2^20 bytes = 128Mb*
+      environment:
+        POSTGRES_USER: ${POSTGRES_USER}
+        POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+        POSTGRES_DB: ${POSTGRES_DB}
+        ALLOW_EMPTY_PASSWORD: ${ALLOW_EMPTY_PASSWORD}
+        PGDATA: ${PGDATA}
+      healthcheck:
+        test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} -h localhost -p 5432"]
+        interval: 5s
+        timeout: 5s
+        retries: 5
+      volumes:
+        - ./moodle_postgres:/var/lib/postgresql/18/docker
+    pgadmin:
+      image: elestio/pgadmin:latest
+      restart: always
+      environment:
+        PGADMIN_DEFAULT_EMAIL: ${ADMIN_EMAIL}
+        PGADMIN_DEFAULT_PASSWORD: ${ADMIN_PASSWORD}
+        PGADMIN_LISTEN_PORT: 8443
+      ports:
+        - ${WEB_ADDRESS}:8443:8443
+      depends_on:
+        postgres:
+          condition: service_healthy
+      volumes:
+      - ./servers.json:/pgadmin4/servers.json
+    redis:
+      image: redis:${REDIS_VERSION}
+      restart: unless-stopped
+      environment:
+        REDIS_HOST: ${REDIS_HOST}
+        REDIS_PORT: ${REDIS_PORT}
+        REDIS_USERNAME: ${REDIS_USERNAME}
+        REDIS_SS: ${REDIS_SS}
+        REDIS_CA_PATH: ${REDIS_CA_PATH}
+        REDIS_SSL_KEYFILE: ${REDIS_SSL_KEYFILE}
+        REDIS_SSL_CERTFILE: ${REDIS_SSL_CERTFILE}
+        REDIS_CERT_REQS: ${REDIS_CERT_REQS}
+        REDIS_CA_CERTS: ${REDIS_CA_CERTS}
+        REDIS_CLUSTER_MODE: ${REDIS_CLUSTER_MODE}
+        REDIS_PWD: ${REDIS_PWD}
+      healthcheck:
+        test: ["CMD", "redis-cli", "ping"]
+        interval: 10s
+        timeout: 5s
+        retries: 3
+      volumes:
+        - ./moodle_redis:/data
+    redisinsight:
+      image: redis/redisinsight:${REDISINSIGHT_VERSION}
+      restart: always
+      environment:
+        RI_APP_PORT: 5540
+        RI_APP_HOST: ${WEB_ADDRESS}
+      ports:
+        - ${WEB_ADDRESS}:5540:5540
+      volumes:
+        - ./moodle_redisinsight:/db
