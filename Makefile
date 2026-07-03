@@ -1,6 +1,5 @@
 # Moodle 5.2 Docker Compose Makefile
 # Usage: make <target>
-# Profiles: dev (all services), prod (Moodle only), full (all services)
 
 .PHONY: help up up-dev up-prod up-full up-web up-db up-cache down rebuild logs shell db-shell db-dump db-restore clean ps
 
@@ -11,12 +10,6 @@ help:
 	@echo ""
 	@echo "Available targets:"
 	@echo "  up              - Start all services (default: dev profile)"
-	@echo "  up-dev          - Start all services for development"
-	@echo "  up-prod         - Start Moodle only (production mode)"
-	@echo "  up-full         - Start all services (full stack)"
-	@echo "  up-web          - Start Moodle only"
-	@echo "  up-db           - Start PostgreSQL + pgAdmin only"
-	@echo "  up-cache        - Start Redis + RedisInsight only"
 	@echo "  down            - Stop and remove containers"
 	@echo "  rebuild         - Rebuild and restart containers"
 	@echo "  rebuild-dev     - Rebuild and restart (dev profile)"
@@ -39,6 +32,11 @@ up:
 	docker compose up -d
 
 # Stop services
+stop:
+
+	docker compose stop
+
+# Stop & Remove services
 down:
 	docker compose down
 

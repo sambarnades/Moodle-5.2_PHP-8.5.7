@@ -68,8 +68,10 @@ RUN rm -f /etc/apache2/sites-enabled/moodle_listeners.conf
 # Copy and setup entrypoint script
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
-ENTRYPOINT [ "/usr/local/bin/entrypoint.sh" ]
 
+ENTRYPOINT [ "entrypoint.sh" ]
+
+# Launch Apache
 CMD ["/usr/local/bin/apache2-foreground"]
 
 # Expose port 80 for HTTP traffic

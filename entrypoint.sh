@@ -35,22 +35,25 @@ if [ ! -f "$INSTALL_MARKER" ]; then
   chmod 0640 /var/www/html/moodle/config.php
 
   echo "Moodle installed successfully!"
+
+  # --------------- CRON & CRON-LOGS ---------------
+  mkdir -p /var/log/moodle
+  touch /var/log/moodle/cron.log
+  chown www-data:www-data /var/log/moodle/cron.log
+
+  # Write once (overwrite) to /etc/cron.d/moodle - cron.php + adhoc_task.php
+  cat > /etc/cron.d/moodle << 'EOF'
+* * * * * www-data /usr/local/bin/php /var/www/html/moodle/admin/cli/cron.php >> /var/log/moodle/cron.log 2>&1
+* * * * * www-data /usr/local/bin/php /var/www/html/moodle/admin/cli/cron.php >> /var/log/moodle/cron.log 2>&1
+* * * * * www-data /usr/local/bin/php /var/www/html/moodle/admin/cli/cron.php >> /var/log/moodle/cron.log 2>&1
+* * * * * www-data /usr/local/bin/php /var/www/html/moodle/admin/cli/adhoc_task.php --execute --keep-alive=59 >> /var/log/moodle/cron.log 2>&1
+* * * * * www-data /usr/local/bin/php /var/www/html/moodle/admin/cli/adhoc_task.php --execute --keep-alive=59 >> /var/log/moodle/cron.log 2>&1
+* * * * * www-data /usr/local/bin/php /var/www/html/moodle/admin/cli/adhoc_task.php --execute --keep-alive=59 >> /var/log/moodle/cron.log 2>&1
+
+EOF
+
 fi
 
-# --------------- CRON & CRON-LOGS ---------------
-mkdir -p /var/log/moodle
-touch /var/log/moodle/cron.log
-chown www-data:www-data /var/log/moodle/cron.log
-
-# Write once (overwrite) to /etc/cron.d/moodle - cron.php + adhoc_task.php
-cat > /etc/cron.d/moodle << 'EOF'
-* * * * * www-data /usr/local/bin/php /var/www/html/moodle/admin/cli/cron.php >> /var/log/moodle/cron.log 2>&1
-* * * * * www-data /usr/local/bin/php /var/www/html/moodle/admin/cli/cron.php >> /var/log/moodle/cron.log 2>&1
-* * * * * www-data /usr/local/bin/php /var/www/html/moodle/admin/cli/cron.php >> /var/log/moodle/cron.log 2>&1
-* * * * * www-data /usr/local/bin/php /var/www/html/moodle/admin/cli/adhoc_task.php --execute --keep-alive=59 >> /var/log/moodle/cron.log 2>&1
-* * * * * www-data /usr/local/bin/php /var/www/html/moodle/admin/cli/adhoc_task.php --execute --keep-alive=59 >> /var/log/moodle/cron.log 2>&1
-* * * * * www-data /usr/local/bin/php /var/www/html/moodle/admin/cli/adhoc_task.php --execute --keep-alive=59 >> /var/log/moodle/cron.log 2>&1
-EOF
 
 # Start cron in the background
 cron &
