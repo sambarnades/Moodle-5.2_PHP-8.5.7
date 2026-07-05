@@ -7,8 +7,8 @@ services:
         context: .
         dockerfile: Moodle.Dockerfile
       ports:
-        - ${WEB_ADDRESS}:80:80
-        - ${WEB_ADDRESS}:443:443
+        - 80:80
+        - 443:443
       environment:
         MOODLE_LANG: ${MOODLE_LANG}
         MOODLE_ROOT: ${MOODLE_ROOT}
@@ -24,7 +24,7 @@ services:
         MOODLE_ADMIN_EMAIL: ${MOODLE_ADMIN_EMAIL}
         MOODLE_SUPPORT_EMAIL: ${MOODLE_SUPPORT_EMAIL}
       healthcheck:
-        test: ["CMD", "curl", "-f", "http://${WEB_ADDRESS}:80/" ]
+        test: ["CMD", "curl", "-f", "https://${MOODLE_ROOT}:443/" ]
         interval: 30s
         timeout: 10s
         retries: 3
@@ -67,7 +67,7 @@ services:
         PGADMIN_DEFAULT_PASSWORD: ${ADMIN_PASSWORD}
         PGADMIN_LISTEN_PORT: 8443
       ports:
-        - ${WEB_ADDRESS}:8443:8443
+        - 8443:8443
       depends_on:
         postgres:
           condition: service_healthy
@@ -100,9 +100,9 @@ services:
       restart: always
       environment:
         RI_APP_PORT: 5540
-        RI_APP_HOST: ${WEB_ADDRESS}
+        RI_APP_HOST: 0.0.0.0
       ports:
-        - ${WEB_ADDRESS}:5540:5540
+        - 5540:5540
       volumes:
         - ./moodle_redisinsight:/db
 volumes:
