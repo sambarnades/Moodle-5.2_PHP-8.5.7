@@ -23,8 +23,9 @@ services:
         MOODLE_SHORTNAME: ${MOODLE_SHORTNAME}
         MOODLE_ADMIN_EMAIL: ${MOODLE_ADMIN_EMAIL}
         MOODLE_SUPPORT_EMAIL: ${MOODLE_SUPPORT_EMAIL}
+      # The healthcheck is on port 80, better to test on 443 for https security
       healthcheck:
-        test: ["CMD", "curl", "-f", "https://${MOODLE_ROOT}:443/" ]
+        test: ["CMD", "curl", "-f", "http://${MOODLE_ROOT}:80/" ]
         interval: 30s
         timeout: 10s
         retries: 3
