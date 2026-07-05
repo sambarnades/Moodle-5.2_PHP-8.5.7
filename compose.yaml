@@ -105,3 +105,9 @@ services:
         - ${WEB_ADDRESS}:5540:5540
       volumes:
         - ./moodle_redisinsight:/db
+volumes:
+  moodle_data:
+  moodle_postgres:
+  moodle_redis:
+  moodle_redisinsight:
+    
