@@ -2,29 +2,14 @@ name: Moodle-Postgres-Redis Network
 networks:
   moodle-network:
 services:
-    moodle:
-      container_name: moodle
+    php_server:
+      container_name: php_server
       build:
         context: .
-        dockerfile: Moodle.Dockerfile
+        dockerfile: php_server.Dockerfile
       ports:
         - 80:80
         - 443:443
-      environment:
-        MOODLE_LANG: ${MOODLE_LANG}
-        MOODLE_ROOT: ${MOODLE_ROOT}
-        MOODLE_DBTYPE: ${MOODLE_DBTYPE}
-        MOODLE_DBHOST: ${MOODLE_DBHOST}
-        MOODLE_DBNAME: ${MOODLE_DBNAME}
-        MOODLE_DBUSER: ${MOODLE_DBUSER}
-        MOODLE_DBPASS: ${MOODLE_DBPASS}
-        MOODLE_ADMIN_USER: ${MOODLE_ADMIN_USER}
-        MOODLE_ADMIN_PASS: ${MOODLE_ADMIN_PASS}
-        MOODLE_FULLNAME: ${MOODLE_FULLNAME}
-        MOODLE_SHORTNAME: ${MOODLE_SHORTNAME}
-        MOODLE_ADMIN_EMAIL: ${MOODLE_ADMIN_EMAIL}
-        MOODLE_SUPPORT_EMAIL: ${MOODLE_SUPPORT_EMAIL}
-      # The healthcheck is on port 80, better to test on 443 for https security
       healthcheck:
         test: ["CMD", "curl", "-f", "http://${MOODLE_ROOT}:80/" ]
         interval: 30s
@@ -36,7 +21,7 @@ services:
         postgres:
           condition: service_healthy
       volumes:
-       - ./moodle_data:/data/moodledata
+       - ./docker_data/moodledata:/data/moodledata
     postgres:
       container_name: postgres
       image: postgres:${POSTGRES_VERSION}
@@ -61,7 +46,7 @@ services:
         timeout: 5s
         retries: 5
       volumes:
-        - ./moodle_postgres:/var/lib/postgresql/18/docker
+        - ./docker_data/postgres:/var/lib/postgresql/18/docker
     pgadmin:
       container_name: pgadmin
       image: elestio/pgadmin:latest
@@ -76,7 +61,7 @@ services:
         postgres:
           condition: service_healthy
       volumes:
-      - ./servers.json:/pgadmin4/servers.json
+      - ./docker_data/pgadmin/servers.json:/docker_data/pgadmin4/servers.json
     redis:
       container_name: redis
       image: redis:${REDIS_VERSION}
@@ -99,7 +84,7 @@ services:
         timeout: 5s
         retries: 3
       volumes:
-        - ./moodle_redis:/data
+        - ./docker_data/moodle_redis:/docker_data/redis-data
     redisinsight:
       container_name: redisinsight
       image: redis/redisinsight:${REDISINSIGHT_VERSION}
@@ -110,10 +95,10 @@ services:
       ports:
         - 5540:5540
       volumes:
-        - ./moodle_redisinsight:/db
+        - ./docker_data/moodle_redisinsight:/docker_data/redisinsight-db
 volumes:
-  moodle_data:
-  moodle_postgres:
-  moodle_redis:
-  moodle_redisinsight:
+  docker_moodledata:
+  docker_postgres:
+  docker_redis:
+  docker_redisinsight:
     

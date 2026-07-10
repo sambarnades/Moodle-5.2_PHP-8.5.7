@@ -1,34 +1,43 @@
 #!/bin/bash
 set -e
 
+# Set permissions for the Moodle directory
+chown -R root:www-data /var/www/html/moodle/ && \
+chmod 0770 /var/www/html/moodle/
+
+# Create Moodle data directory with proper permissions
+# root owns the directory, www-data/Apache group has write access, good for maintenance
+mkdir -p /data/moodledata && \
+chown -R root:www-data /data/moodledata && \
+chmod -R 0770 /data/moodledata
+
+# Configure Apache to use 'localhost' as ServerName
+echo ServerName localhost >> /etc/apache2/apache2.conf
+
+# Remove any existing symlink to moodle_listeners.conf
+rm -f /etc/apache2/sites-enabled/moodle_listeners.conf
+
 # Entrypoint script for Moodle container
-# Runs installation if needed, then starts Apache
 
-INSTALL_MARKER="/data/moodledata/.installed"
+echo "Installing Moodle..."
 
-# Run Moodle installation if not already installed
-if [ ! -f "$INSTALL_MARKER" ]; then
-  echo "Installing Moodle..."
-
-  php /var/www/html/moodle/admin/cli/install.php \
-    --wwwroot="http://${MOODLE_ROOT:-127.0.0.1}" \
-    --lang="${MOODLE_LANG:-fr}" \
-    --dataroot="/data/moodledata" \
-    --dbtype="${MOODLE_DBTYPE:-pgsql}" \
-    --dbhost="${MOODLE_DBHOST:-postgres}" \
-    --dbname="${MOODLE_DBNAME:-moodle}" \
-    --dbuser="${MOODLE_DBUSER:-moodleadmin}" \
-    --dbpass="${MOODLE_DBPASS:-moodlepass}" \
-    --adminuser="${MOODLE_ADMIN_USER:-moodle}" \
-    --adminpass="${MOODLE_ADMIN_PASS:-moodlepass}" \
-    --adminemail="${MOODLE_ADMIN_EMAIL:-admin@moodle.com}" \
-    --supportemail="${MOODLE_SUPPORT_EMAIL:-support@moodle.com}" \
-    --agree-license \
-    --non-interactive \
-    --fullname="${MOODLE_FULLNAME:-Moodle}" \
-    --shortname="${MOODLE_SHORTNAME:-Moodle}"
-
-  touch "$INSTALL_MARKER"
+php /var/www/html/moodle/admin/cli/install.php \
+  --wwwroot="http://${MOODLE_ROOT:-127.0.0.1}" \
+  --lang="${MOODLE_LANG:-fr}" \
+  --dataroot="/data/moodledata" \
+  --dbtype="${MOODLE_DBTYPE:-pgsql}" \
+  --dbhost="${MOODLE_DBHOST:-postgres}" \
+  --dbname="${MOODLE_DBNAME:-moodle}" \
+  --dbuser="${MOODLE_DBUSER:-moodleadmin}" \
+  --dbpass="${MOODLE_DBPASS:-moodlepass}" \
+  --adminuser="${MOODLE_ADMIN_USER:-moodle}" \
+  --adminpass="${MOODLE_ADMIN_PASS:-moodlepass}" \
+  --adminemail="${MOODLE_ADMIN_EMAIL:-admin@moodle.com}" \
+  --supportemail="${MOODLE_SUPPORT_EMAIL:-support@moodle.com}" \
+  --agree-license \
+  --non-interactive \
+  --fullname="${MOODLE_FULLNAME:-Moodle}" \
+  --shortname="${MOODLE_SHORTNAME:-Moodle}"
 
   # Set proper permissions for config.php
   chown root:www-data /var/www/html/moodle/config.php && \
@@ -51,8 +60,6 @@ if [ ! -f "$INSTALL_MARKER" ]; then
 * * * * * www-data /usr/local/bin/php /var/www/html/moodle/admin/cli/adhoc_task.php --execute --keep-alive=59 >> /var/log/moodle/cron.log 2>&1
 
 EOF
-
-fi
 
 
 # Start cron in the background

@@ -1,12 +1,18 @@
 # Use the official PHP 8.5.3 Apache image as the base
-FROM php:8.5.7-apache
+FROM php:8.5.8-apache
 
 # Set the working directory inside the container
 WORKDIR /var/www/html/
 
 # Copy Apache configuration files for Moodle
-COPY ./moodle_listener.conf /etc/apache2/moodle_listener.conf
-COPY ./moodle_listeners.conf /etc/apache2/sites-available/000-default.conf
+COPY ./apache_configuration/moodle_listener.conf /etc/apache2/moodle_listener.conf
+RUN echo "<VirtualHost *:80>" >> /etc/apache2/sites-available/000-default.conf && \
+    echo "Include /etc/apache2/moodle_listener.conf" >> /etc/apache2/sites-available/000-default.conf && \
+    echo "</VirtualHost>" >> /etc/apache2/sites-available/000-default.conf
+
+# Copy Moodle 5.2 stable directly into the html directory
+COPY ./moodle /var/www/html/moodle/
+COPY ./setup.sh /var/www/html/
 
 # Install system dependencies required for Moodle and PHP extensions
 RUN apt-get update && \
@@ -22,19 +28,9 @@ RUN apt-get update && \
       libxml2-dev \
       libonig-dev \
       nano \
-      python3 \
-      python3-dev \
-      python3-venv \
-      libaugeas-dev \
-      gcc \
       cron && \
     docker-php-ext-configure gd --with-freetype --with-jpeg && \
     docker-php-ext-install -j$(nproc) zip gd pgsql pdo_pgsql intl soap
-
-RUN python3 -m venv /opt/certbot/ && \
-    /opt/certbot/bin/pip install --upgrade pip && \
-    /opt/certbot/bin/pip install certbot certbot-apache && \
-    ln -s /opt/certbot/bin/certbot /usr/local/bin/certbot
 
     # Set PHP settings for Moodle: max_input_vars and OPcache
 RUN echo "max_input_vars=5000" >> /usr/local/etc/php/conf.d/docker-php-moodle.ini && \
@@ -51,37 +47,8 @@ RUN echo "max_input_vars=5000" >> /usr/local/etc/php/conf.d/docker-php-moodle.in
     echo "upload_max_filesize=100M" >> /usr/local/etc/php/conf.d/docker-php-filsize.ini && \
     echo "max_execution_time=300" >> /usr/local/etc/php/conf.d/docker-php-filsize.ini
 
-# PRODUCTION: Use the official Moodle release tarball for stability and security
-# Clone Moodle 5.2 stable directly into the moodle directory
-RUN mkdir -p /var/www/html/moodle && \
-    git clone -b MOODLE_502_STABLE git://git.moodle.org/moodle.git /var/www/html/moodle
+# ----------------------------------------------------------- #
 
-# Set permissions for the Moodle directory
-RUN chown -R root:www-data /var/www/html/moodle/ && \
-    chmod 0770 /var/www/html/moodle/
-
-# Create Moodle data directory with proper permissions
-# root owns the directory, www-data/Apache group has write access, good for maintenance
-RUN mkdir -p /data/moodledata && \
-    chown -R root:www-data /data/moodledata && \
-    chmod -R 0770 /data/moodledata
-
-# Create a symlink for the Moodle data directory
-# RUN ln -s /var/www/html/moodle /var/www/html/moodle_public
-
-# Configure Apache to use 'localhost' as ServerName
-RUN echo ServerName localhost >> /etc/apache2/apache2.conf
-
-# Remove any existing symlink to moodle_listeners.conf
-RUN rm -f /etc/apache2/sites-enabled/moodle_listeners.conf
-
-# Copy and setup entrypoint script
-COPY entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
-
-ENTRYPOINT [ "entrypoint.sh" ]
-
-# Launch Apache
 CMD ["/usr/local/bin/apache2-foreground"]
 
 # Expose port 80 for HTTP traffic
