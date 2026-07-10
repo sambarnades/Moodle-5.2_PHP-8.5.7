@@ -5,7 +5,7 @@ FROM php:8.5.8-apache
 WORKDIR /var/www/html/
 
 # Copy Apache configuration files for Moodle
-COPY ./apache_configuration/moodle_listener.conf /etc/apache2/moodle_listener.conf
+ADD https://${GIT_REMOTE_REPO_URL}/apache_configuration/moodle_listener.conf /etc/apache2/moodle_listener.conf
 RUN echo "<VirtualHost *:80>" >> /etc/apache2/sites-available/000-default.conf && \
     echo "Include /etc/apache2/moodle_listener.conf" >> /etc/apache2/sites-available/000-default.conf && \
     echo "</VirtualHost>" >> /etc/apache2/sites-available/000-default.conf
