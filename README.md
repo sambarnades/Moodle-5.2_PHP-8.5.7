@@ -107,6 +107,29 @@ See `.env.example` for the complete template with all available variables.
 
 ---
 
+### HTTPS Configuration
+#### Install Certbot
+```
+$ apt install python3 python3-dev python3-venv libaugeas-dev gcc
+$ python3 -m venv /opt/certbot/
+$ /opt/certbot/bin/pip install --upgrade pip
+$ /opt/certbot/bin/pip install certbot certbot-apache
+$ ln -s /opt/certbot/bin/certbot /usr/local/bin/certbot
+```
+##### Proceed the interactive installation
+`$ certbot --apache`
+
+##### Add a cron job to renew the certificate
+```
+$ echo "0 0,12 * * * root /opt/certbot/bin/python -c 'import random; import time; time.sleep(random.random() * 3600)' && sudo certbot renew -q" | sudo tee -a /etc/crontab > /dev/null
+```
+Read the [certbot documentation](https://certbot.eff.org/instructions?ws=apache&os=pip) for more details.
+
+#### Check the listeners
+Check the listeners of the Apache server:
+- **moodle_listeners.conf** in `/etc/apache2/sites-e_listener.conf`
+- **000-default.conf** in `/etc/apache2/sites-available/000-default.conf`
+
 ## 📁 Project Structure
 
 ```

@@ -22,9 +22,19 @@ RUN apt-get update && \
       libxml2-dev \
       libonig-dev \
       nano \
+      python3 \
+      python3-dev \
+      python3-venv \
+      libaugeas-dev \
+      gcc \
       cron && \
     docker-php-ext-configure gd --with-freetype --with-jpeg && \
     docker-php-ext-install -j$(nproc) zip gd pgsql pdo_pgsql intl soap
+
+RUN python3 -m venv /opt/certbot/ && \
+    /opt/certbot/bin/pip install --upgrade pip && \
+    /opt/certbot/bin/pip install certbot certbot-apache && \
+    ln -s /opt/certbot/bin/certbot /usr/local/bin/certbot
 
     # Set PHP settings for Moodle: max_input_vars and OPcache
 RUN echo "max_input_vars=5000" >> /usr/local/etc/php/conf.d/docker-php-moodle.ini && \

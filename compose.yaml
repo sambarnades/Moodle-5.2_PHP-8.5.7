@@ -3,6 +3,7 @@ networks:
   moodle-network:
 services:
     moodle:
+      container_name: moodle
       build:
         context: .
         dockerfile: Moodle.Dockerfile
@@ -37,6 +38,7 @@ services:
       volumes:
        - ./moodle_data:/data/moodledata
     postgres:
+      container_name: postgres
       image: postgres:${POSTGRES_VERSION}
       restart: always
       # set shared memory limit when using docker compose
@@ -61,6 +63,7 @@ services:
       volumes:
         - ./moodle_postgres:/var/lib/postgresql/18/docker
     pgadmin:
+      container_name: pgadmin
       image: elestio/pgadmin:latest
       restart: always
       environment:
@@ -75,6 +78,7 @@ services:
       volumes:
       - ./servers.json:/pgadmin4/servers.json
     redis:
+      container_name: redis
       image: redis:${REDIS_VERSION}
       restart: unless-stopped
       environment:
@@ -97,6 +101,7 @@ services:
       volumes:
         - ./moodle_redis:/data
     redisinsight:
+      container_name: redisinsight
       image: redis/redisinsight:${REDISINSIGHT_VERSION}
       restart: always
       environment:
